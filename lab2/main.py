@@ -8,7 +8,7 @@ from PIL import Image
 
 
 ALLOWED_EXTENSIONS = {".bmp", ".png"}
-WINDOW_SIZE = 5
+WINDOW_SIZE = 3
 
 
 def load_rgb_image(path: Path) -> np.ndarray:
@@ -29,23 +29,23 @@ def rgb_to_grayscale(rgb: np.ndarray) -> np.ndarray:
     return np.clip(gray, 0, 255).astype(np.uint8)
 
 
-def adaptive_threshold_mean(gray: np.ndarray, window_size: int = WINDOW_SIZE) -> np.ndarray:
+def adaptive_threshold_minimax(gray: np.ndarray, window_size: int = WINDOW_SIZE) -> np.ndarray:
+    if window_size != 3:
+        raise ValueError("Для этого варианта поддерживается окно 3x3.")
+
     pad = window_size // 2
-    padded = np.pad(gray.astype(np.float32), pad_width=pad, mode="edge")
+    padded = np.pad(gray, pad_width=pad, mode="edge")
 
-    integral = np.cumsum(np.cumsum(padded, axis=0), axis=1)
-    integral = np.pad(integral, ((1, 0), (1, 0)), mode="constant", constant_values=0)
+    neighbors = []
+    for dy in range(window_size):
+        for dx in range(window_size):
+            neighbors.append(padded[dy : dy + gray.shape[0], dx : dx + gray.shape[1]])
 
-    k = window_size
-    sums = (
-        integral[k:, k:]
-        - integral[:-k, k:]
-        - integral[k:, :-k]
-        + integral[:-k, :-k]
-    )
-    means = sums / (k * k)
+    local_min = np.minimum.reduce(neighbors).astype(np.float32)
+    local_max = np.maximum.reduce(neighbors).astype(np.float32)
+    threshold = (local_min + local_max) / 2.0
 
-    return (gray.astype(np.float32) > means).astype(np.uint8) * 255
+    return (gray.astype(np.float32) > threshold).astype(np.uint8) * 255
 
 
 def gray_to_rgb(gray: np.ndarray) -> np.ndarray:
@@ -70,7 +70,7 @@ def save_side_by_side(left_rgb: np.ndarray, right_rgb: np.ndarray, out_path: Pat
 def process_image(path: Path, output_dir: Path) -> None:
     rgb = load_rgb_image(path)
     gray = rgb_to_grayscale(rgb)
-    binary = adaptive_threshold_mean(gray, window_size=WINDOW_SIZE)
+    binary = adaptive_threshold_minimax(gray, window_size=WINDOW_SIZE)
 
     grayscale_dir = output_dir / "grayscale"
     binary_dir = output_dir / "binary"
