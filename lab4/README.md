@@ -65,26 +65,34 @@ python main.py --input-dir ./input_images --output-dir ./output --threshold 64
 ## Примеры результатов
 ### 1. Текстовое изображение
 Исходное и полутоновое:
+
 ![Текст: цветное -> полутоновое](output/comparisons/image-0.2-2.jpeg_original_to_gray.png)
 
 Градиенты `Gx`, `Gy`, `G`:
+
 ![Текст: Gx Gy G](output/comparisons/image-0.2-2.jpeg_gx_gy_g.png)
 
 `G` и бинаризация:
+
 ![Текст: G -> binary](output/comparisons/image-0.2-2.jpeg_g_to_binary.png)
 
 Бинаризованная матрица `G`:
+
 ![Текст: binary](output/comparisons/image-0.2-2.jpeg_binary_only.png)
 
 ### 2. Цветное изображение
 Исходное и полутоновое:
+
 ![Кадр: цветное -> полутоновое](output/comparisons/ratatouille_original_to_gray.png)
 
 Градиенты `Gx`, `Gy`, `G`:
+
 ![Кадр: Gx Gy G](output/comparisons/ratatouille_gx_gy_g.png)
 
 `G` и бинаризация:
+
 ![Кадр: G -> binary](output/comparisons/ratatouille_g_to_binary.png)
 
 Бинаризованная матрица `G`:
+
 ![Кадр: binary](output/comparisons/ratatouille_binary_only.png)
