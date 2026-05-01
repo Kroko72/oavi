@@ -82,8 +82,6 @@ python main.py
 python main.py --expected +89177425210
 ```
 
-Если команда `python3` указывает на интерпретатор без `numpy`, `scipy` и `matplotlib`, нужно запускать через `python`, как в предыдущих лабораторных.
-
 ## Полученные результаты
 Файл `samples/phone.wav`:
 
