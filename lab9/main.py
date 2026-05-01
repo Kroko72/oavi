@@ -12,7 +12,7 @@ from scipy.io import wavfile
 from scipy.signal import istft, stft
 
 
-DEFAULT_INPUT = Path("sweden.wav")
+DEFAULT_INPUT = Path("short.wav")
 DEFAULT_OUTPUT_DIR = Path("output")
 WINDOW_SECONDS = 0.05
 OVERLAP_PART = 0.75
@@ -275,6 +275,7 @@ def write_energy_csv(maxima: list[dict[str, float]], out_path: Path) -> None:
 
 
 def write_report(
+    input_name: str,
     audio_info: AudioInfo,
     noise_info: NoiseInfo,
     maxima: list[dict[str, float]],
@@ -284,7 +285,7 @@ def write_report(
         "Лабораторная работа №9",
         "Тема: анализ шума",
         "",
-        "Исходный файл: sweden.wav",
+        f"Исходный файл: {input_name}",
         f"Частота дискретизации: {audio_info.sample_rate} Гц",
         f"Каналов: {audio_info.channels}",
         f"Длительность: {audio_info.duration:.2f} с",
@@ -332,6 +333,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     output_dirs = ensure_directories(args.output_dir)
+    input_stem = args.input.stem
 
     sample_rate, source_data = wavfile.read(args.input)
     source_float = pcm_to_float(source_data)
@@ -347,26 +349,30 @@ def main() -> None:
         dtype=str(source_data.dtype),
     )
 
-    wavfile.write(output_dirs["audio"] / "sweden_denoised.wav", sample_rate, float_to_int16(cleaned_float))
+    wavfile.write(
+        output_dirs["audio"] / f"{input_stem}_denoised.wav",
+        sample_rate,
+        float_to_int16(cleaned_float),
+    )
 
     save_spectrogram(
         original_mono,
         sample_rate,
         "Спектрограмма исходного сигнала",
-        output_dirs["spectrograms"] / "sweden_before.png",
+        output_dirs["spectrograms"] / f"{input_stem}_before.png",
     )
     save_spectrogram(
         cleaned_mono,
         sample_rate,
         "Спектрограмма после спектрального вычитания",
-        output_dirs["spectrograms"] / "sweden_after.png",
+        output_dirs["spectrograms"] / f"{input_stem}_after.png",
     )
 
     noise_info = estimate_noise(original_mono, cleaned_mono, sample_rate)
     maxima = find_energy_maxima(cleaned_mono, sample_rate)
 
     write_energy_csv(maxima, output_dirs["tables"] / "energy_maxima.csv")
-    write_report(audio_info, noise_info, maxima, output_dirs["reports"] / "report.txt")
+    write_report(args.input.name, audio_info, noise_info, maxima, output_dirs["reports"] / "report.txt")
 
 
 if __name__ == "__main__":
